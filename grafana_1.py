@@ -10,7 +10,7 @@ DASHBOARD_UID = "opentelemetry-apm"
 PROMETHEUS_URL = "http://3.82.60.81:9090"
 
 # Define the time range for the query
-start_time_str = "2024-08-13 18:43:01"  # Start date
+start_time_str = "1970-01-01 18:43:01"  # Start date
 end_time_str = "2024-08-23 18:43:02"  # End date
 
 # # Convert times to Prometheus-compatible format (Unix timestamp)
