@@ -1,7 +1,7 @@
 import os
 import json
-from GrafanaPrometheusDataFetcher import GrafanaPrometheusDataFetcher
-from GrafanaDashboardProcessor import GrafanaDashboardProcessor
+from Anomaly_grafana.python_script.GrafanaPrometheusDataFetcher import GrafanaPrometheusDataFetcher
+from Anomaly_grafana.python_script.GrafanaDashboardProcessor import GrafanaDashboardProcessor
 
 def main():
     # Define necessary parameters
