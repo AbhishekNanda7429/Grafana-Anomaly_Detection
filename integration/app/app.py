@@ -26,7 +26,7 @@ def get_db_connection():
         print(f"Error while connecting to MySQL: {e}")
         return None
 
-@app.route('/send-anomalies', methods=['POST'])
+@app.route('/calls-total', methods=['POST'])
 def send_anomalies():
     data = request.json
     
@@ -39,9 +39,13 @@ def send_anomalies():
 
     try:
         cursor = connection.cursor()  # Use cursor() method instead of a context manager with mysql.connector
-        sql = "INSERT INTO anomalies (timestamp, value, is_anomaly) VALUES (%s, %s, %s)"
-        for anomaly in data["anomalies"]:
-            cursor.execute(sql, (anomaly["timestamp"], anomaly["value"], anomaly["is_anomaly"]))
+        sql = "INSERT INTO calls_total (timestamp, value, is_anomaly) VALUES (%s, %s, %s)"
+        
+        # Iterate over the full dataset (not just anomalies)
+        for entry in data["data"]:
+            cursor.execute(sql, (entry["timestamp"], entry["value"], entry["is_anomaly"]))
+        
+        # Commit all changes to the database
         connection.commit()
 
     except Error as e:
@@ -55,7 +59,7 @@ def send_anomalies():
             connection.close()
             print("MySQL connection closed")
 
-    return jsonify({"status": "success", "message": "Anomalies sent to the database"}), 200
+    return jsonify({"status": "success", "message": "Data sent to the database"}), 200
 
 if __name__ == '__main__':
     app.run(debug=True)
