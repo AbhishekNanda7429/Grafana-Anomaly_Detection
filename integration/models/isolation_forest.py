@@ -1,4 +1,6 @@
-# #calls_total & scrape_duration_seconds
+#calls_total 
+#scrape_duration_seconds
+#duration_millisecond_bucket
 #--------------------------------------
 
 import requests
