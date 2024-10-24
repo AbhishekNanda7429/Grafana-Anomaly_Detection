@@ -96,6 +96,42 @@ def send_anomalies_scrape_duration_seconds():
 
     return jsonify({"status": "success", "message": "Data sent to the database"}), 200
 
+@app.route('/duration-milliseconds-sum', methods=['POST'])
+def send_anomalies_duration_milliseconds_sum():
+    data = request.json
+    
+    # Get the database connection
+    connection = get_db_connection()
+
+    # If connection is None, return an error message
+    if connection is None:
+        return jsonify({"status": "error", "message": "Failed to connect to the database"}), 500
+
+    try:
+        cursor = connection.cursor()  # Use cursor() method instead of a context manager with mysql.connector
+        sql = "INSERT INTO duration_milliseconds_sum (timestamp, value, is_anomaly) VALUES (%s, %s, %s)"
+        
+        # Iterate over the full dataset (not just anomalies)
+        for entry in data["data"]:
+            cursor.execute(sql, (entry["timestamp"], entry["value"], entry["is_anomaly"]))
+        
+        # Commit all changes to the database
+        connection.commit()
+
+    except Error as e:
+        print(f"Error executing SQL query: {e}")
+        return jsonify({"status": "error", "message": "Failed to execute SQL query"}), 500
+
+    finally:
+        # Always close the connection if it was successfully established
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+            print("MySQL connection closed")
+
+    return jsonify({"status": "success", "message": "Data sent to the database"}), 200
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
