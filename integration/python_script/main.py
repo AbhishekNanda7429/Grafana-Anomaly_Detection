@@ -1,5 +1,6 @@
 import os
-import json
+import datetime
+from datetime import datetime
 from GrafanaPrometheusDataFetcher import GrafanaPrometheusDataFetcher
 from GrafanaDashboardProcessor import GrafanaDashboardProcessor
 
@@ -11,7 +12,7 @@ def main():
     
     username = 'admin'
     password = 'Imfine123$'
-    timeframes = ['2024-08-22 13:06:55', '2024-08-22 14:06:55']
+    timeframes = ['2024-10-15 13:06:55', '2024-10-25 14:06:55']
     
     # Create an instance of the processor
     processor = GrafanaDashboardProcessor(
@@ -36,16 +37,23 @@ def main():
         
         from_time = fetcher.convert_to_timestamp(timeframes[0])
         to_time = fetcher.convert_to_timestamp(timeframes[1])
+
+        # Convert to Unix timestamps
+        timestamps = [int(datetime.strptime(time, '%Y-%m-%d %H:%M:%S').timestamp()) for time in timeframes]
+ 
+       
+        # Path to get resource names (e.g., Prometheus metric names)
+        path = f"/api/datasources/uid/{uid}/resources/api/v1/label/__name__/values?start={timestamps[0]}&end={timestamps[1]}"
         
         # Path to get resource names (e.g., Prometheus metric names)
-        path = f"/api/datasources/uid/{uid}/resources/api/v1/label/__name__/values?start=1724389980&end=1724393640"
+        path = f"/api/datasources/uid/{uid}/resources/api/v1/label/__name__/values?start=1729834381&end=1729835281"
         expr_list = fetcher.get_resources(path=path)
         
         print("Metric Names:", expr_list)
         
         # Initialize main_df as a dictionary to hold DataFrames for each expr
         main_df = {}
-        output_dir = 'output'
+        output_dir = 'dataframes'
         
         # Ensure the output directory exists
         if not os.path.exists(output_dir):
@@ -58,12 +66,16 @@ def main():
             
             if json_data:
                 # Save the data to a file
-                processor.save_to_file(f'{output_dir}/{expr}.json',json_data)
+                # processor.save_to_file(f'{output_dir}/{expr}.json',json_data)
                 
                 
                 # Process the data into a DataFrame
                 df = fetcher.process_data(json_data)
                 
+                
+                # Save the DataFrame to a CSV file
+                df.to_csv(f'{output_dir}/{expr}.csv', index=False)
+
                 # Plot the data
                 # fetcher.plot_data(df, expr)
                 

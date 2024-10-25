@@ -7,7 +7,7 @@ app = Flask(__name__)
 # MySQL connection configuration
 MYSQL_HOST = 'localhost'
 MYSQL_USER = 'root'
-MYSQL_PASSWORD = 'abhi1502'  # Add your MySQL password here
+MYSQL_PASSWORD = 'abhi1502'  
 MYSQL_DB = 'anomaly_db'
 
 # Function to get a MySQL database connection
