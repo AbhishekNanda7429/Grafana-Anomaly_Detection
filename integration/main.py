@@ -1,11 +1,24 @@
 from models.isolation_forest import IsolationForestModel
 from models.prophet_model import ProphetModel
+from python_script.extractor import GrafanaDataExtractor
 
 # Example usage for two datasets
 if __name__ == "__main__":
-    # Dataset 1 calls_total
-    file_path_1 = 'C:\\Users\\abhis\\Desktop\\CloudBuilders\\Grafana-Anomaly\\Grafana-Anomaly_Detection\\Anomaly_grafana\\dataframes\\calls_total_df.csv'  
-    api_url_1 = 'http://localhost:5000/calls-total'  # Your Flask API endpoint
+
+    #extract data from grafana and store as csv df
+    extractor = GrafanaDataExtractor(
+        grafana_url="https://op.cloudbuilders.io",
+        api_key="glsa_Y8WYTAWLM3BoHHDGYSUb86e59kbGkBIw_523e9ead",
+        dashboard_uid="opentelemetry-apm",
+        username='admin',
+        password='Imfine123$',
+        timeframes=['2024-10-15 13:06:55', '2024-10-25 14:06:55']
+    )
+    data = extractor.extract_data()
+
+    #Dataset 1 calls_total 
+    file_path_1 = 'C:\\Users\\abhis\\Desktop\\CloudBuilders\\Grafana-Anomaly\\Grafana-Anomaly_Detection\\integration\\python_script\\dataframes\\calls_total.csv'  
+    api_url_1 = 'http://localhost:5000/calls-total'  
     
     anomaly_detector_1 = IsolationForestModel(file_path_1, api_url_1)
     anomaly_detector_1.load_and_preprocess_data()
@@ -14,8 +27,8 @@ if __name__ == "__main__":
     anomaly_detector_1.print_data_summary()
 
     # Dataset 2 scrape_duration_seconds
-    file_path_2 = 'C:\\Users\\abhis\\Desktop\\CloudBuilders\\Grafana-Anomaly\\Grafana-Anomaly_Detection\\Anomaly_grafana\\dataframes\\scrape_duration_seconds_df.csv'  
-    api_url_2 = 'http://localhost:5000/scrape-duration-seconds'  # Another Flask API endpoint
+    file_path_2 = 'C:\\Users\\abhis\\Desktop\\CloudBuilders\\Grafana-Anomaly\\Grafana-Anomaly_Detection\\integration\\python_script\\dataframes\\scrape_duration_seconds.csv'  
+    api_url_2 = 'http://localhost:5000/scrape-duration-seconds'  
     
     anomaly_detector_2 = IsolationForestModel(file_path_2, api_url_2)
     anomaly_detector_2.load_and_preprocess_data()
@@ -24,8 +37,8 @@ if __name__ == "__main__":
     anomaly_detector_2.print_data_summary()
 
     #Dataset 3 duration_milliseconds_sum
-    file_path_3 = 'C:\\Users\\abhis\\Desktop\\CloudBuilders\\Grafana-Anomaly\\Grafana-Anomaly_Detection\\Anomaly_grafana\\dataframes\\duration_ms_sum_df.csv'  
-    api_url_3 = 'http://localhost:5000/duration-milliseconds-sum'  # Another Flask API endpoint
+    file_path_3 = 'C:\\Users\\abhis\\Desktop\\CloudBuilders\\Grafana-Anomaly\\Grafana-Anomaly_Detection\\integration\\python_script\\dataframes\\duration_milliseconds_sum.csv'  
+    api_url_3 = 'http://localhost:5000/duration-milliseconds-sum'  
     
     anomaly_detector_3 = ProphetModel(file_path_3, api_url_3)
     anomaly_detector_3.load_data()
@@ -36,8 +49,8 @@ if __name__ == "__main__":
     anomaly_detector_3.print_data_summary()
 
     #Dataset 4 duration_millisecond_bucket
-    file_path_4 = 'C:\\Users\\abhis\\Desktop\\CloudBuilders\\Grafana-Anomaly\\Grafana-Anomaly_Detection\\Anomaly_grafana\\dataframes\\duration_ms_bucket_df.csv'  
-    api_url_4 = 'http://localhost:5000/duration-milliseconds-bucket'  # Another Flask API endpoint
+    file_path_4 = 'C:\\Users\\abhis\\Desktop\\CloudBuilders\\Grafana-Anomaly\\Grafana-Anomaly_Detection\\integration\\python_script\\dataframes\\duration_millisecond_bucket.csv'  
+    api_url_4 = 'http://localhost:5000/duration-milliseconds-bucket'  
     
     anomaly_detector_4 = IsolationForestModel(file_path_4, api_url_4)
     anomaly_detector_4.load_and_preprocess_data()
