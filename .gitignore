@@ -3,3 +3,4 @@ output_csv/
 output_json/
 dataframes/
 __pycache__/
+anomalies/

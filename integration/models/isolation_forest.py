@@ -1,8 +1,9 @@
-#calls_total 
-#scrape_duration_seconds
-#duration_millisecond_bucket
-#--------------------------------------
+# #calls_total 
+# #scrape_duration_seconds
+# #duration_millisecond_bucket- no anomaly
+# #--------------------------------------
 
+import os
 import requests
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
@@ -14,7 +15,6 @@ class IsolationForestModel:
         self.api_url = api_url
         self.df = None
         self.metrics_columns = ['Value']
-        #metrics_columns if metrics_columns else ['Value']
         
     def load_and_preprocess_data(self):
         # Load the CSV file into a pandas DataFrame
@@ -70,26 +70,42 @@ class IsolationForestModel:
         # Fit the model and predict anomalies (-1 means anomaly, 1 means normal)
         self.df['anomaly'] = iso_forest.fit_predict(metrics_scaled)
 
-    def send_data_to_api(self):
-        # Convert the entire dataset (including anomaly status) to a list of dictionaries
-        all_data = []
-        for index, row in self.df.iterrows():
-            all_data.append({
-                "timestamp": index.isoformat(),
-                "value": row['Value'],  # Assuming the first metric column
-                "is_anomaly": row["anomaly"] == -1  # True if anomaly, False otherwise
-            })
+    def send_anomalies_to_api(self):
+        # Filter the DataFrame for anomalies only
+        anomalies_df = self.df[self.df['anomaly'] == -1]
 
-        # Send the full dataset to the Flask API
-        response = requests.post(self.api_url, json={"data": all_data})
+        # Convert anomalies to a list of dictionaries
+        anomaly_data = [
+            {
+                "timestamp": index.isoformat(),
+                "value": row['Value'],
+                "is_anomaly": True
+            }
+            for index, row in anomalies_df.iterrows()
+        ]
+
+        # Send only the anomalies to the Flask API
+        response = requests.post(self.api_url, json={"data": anomaly_data})
 
         # Check the response from the Flask API
         if response.status_code == 200:
-            print(f"Successfully sent {len(self.df)} rows of data to the API.")
+            print(f"Successfully sent {len(anomalies_df)} anomalies to the API.")
         else:
-            print(f"Failed to send data. Status code: {response.status_code}, Response: {response.text}")
+            print(f"Failed to send anomalies. Status code: {response.status_code}, Response: {response.text}")
+
+        # Prepare the output folder and anomaly CSV file path
+        output_folder = "anomalies"
+        os.makedirs(output_folder, exist_ok=True)
+
+        # Get the input file name without extension and add '_anomalies.csv' suffix
+        input_filename = os.path.splitext(os.path.basename(self.file_path))[0]
+        output_file_path = os.path.join(output_folder, f"{input_filename}_anomalies.csv")
+
+        # Save anomalies to the specified CSV file
+        anomalies_df.to_csv(output_file_path)
+        print(f"Anomalies saved to {output_file_path}")
 
     def print_data_summary(self):
-        # Print out some of the data for debugging
-        print(f"Total data sent: {len(self.df)}")
+        #Print out some of the data for debugging
+        print(f"Total data read: {len(self.df)}")
         print(self.df.head())

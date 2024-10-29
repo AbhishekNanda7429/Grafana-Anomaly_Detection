@@ -1,6 +1,7 @@
-#duration_milliseconds_sum
-#-------------------
+#duration_milliseconds_sum - no anomaly
+#--------------------
 
+import os
 import pandas as pd
 from prophet import Prophet
 import requests  
@@ -55,28 +56,44 @@ class ProphetModel:
         # Anomalies are where actual values fall outside prediction intervals
         self.df['anomaly'] = (self.df['y'] > self.df['yhat_upper']) | (self.df['y'] < self.df['yhat_lower'])
 
-    def send_data_to_api(self):
+    def send_anomalies_to_api(self):
         """
-        Send data to the API in the same format as the Isolation Forest model.
+        Send only anomalies to the API in the same format as the Isolation Forest model.
         Each dictionary contains the timestamp, value, and an is_anomaly flag.
         """
-        # Convert the entire dataset (including anomaly status) to a list of dictionaries
-        all_data = []
-        for index, row in self.df.iterrows():
-            all_data.append({
+        # Filter the DataFrame for anomalies only
+        anomalies_df = self.df[self.df['anomaly'] == True]
+
+        # Convert anomalies to a list of dictionaries
+        anomaly_data = [
+            {
                 "timestamp": row['ds'].isoformat(),  # Ensure timestamp is in ISO format
                 "value": row['y'],  # The actual value
-                "is_anomaly": row["anomaly"]  # True if anomaly, False otherwise
-            })
+                "is_anomaly": True
+            }
+            for _, row in anomalies_df.iterrows()
+        ]
 
-        # Send the full dataset to the Flask API
-        response = requests.post(self.api_url, json={"data": all_data})
+        # Send only the anomalies to the Flask API
+        response = requests.post(self.api_url, json={"data": anomaly_data})
 
         # Check the response from the Flask API
         if response.status_code == 200:
-            print(f"Successfully sent {len(self.df)} rows of data to the API.")
+            print(f"Successfully sent {len(anomalies_df)} anomalies to the API.")
         else:
-            print(f"Failed to send data. Status code: {response.status_code}, Response: {response.text}")
+            print(f"Failed to send anomalies. Status code: {response.status_code}, Response: {response.text}")
+
+        # Prepare the output folder and anomaly CSV file path
+        output_folder = "anomalies"
+        os.makedirs(output_folder, exist_ok=True)
+
+        # Get the input file name without extension and add '_anomalies.csv' suffix
+        input_filename = os.path.splitext(os.path.basename(self.file_path))[0]
+        output_file_path = os.path.join(output_folder, f"{input_filename}_anomalies.csv")
+
+        # Save anomalies to the specified CSV file
+        anomalies_df.to_csv(output_file_path, index=False)
+        print(f"Anomalies saved to {output_file_path}")
 
     def print_data_summary(self):
         # Print out some of the data for debugging
