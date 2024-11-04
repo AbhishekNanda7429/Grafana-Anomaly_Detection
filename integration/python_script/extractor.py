@@ -7,13 +7,14 @@ from python_script.GrafanaPrometheusDataFetcher import GrafanaPrometheusDataFetc
 from python_script.GrafanaDashboardProcessor import GrafanaDashboardProcessor
 
 class GrafanaDataExtractor:
-    def __init__(self, grafana_url, api_key, dashboard_uid, username, password, timeframes):
+    def __init__(self, grafana_url, api_key, dashboard_uid, username, password, timeframes,intervalMs):
         self.grafana_url = grafana_url
         self.api_key = api_key
         self.dashboard_uid = dashboard_uid
         self.username = username
         self.password = password
         self.timeframes = timeframes
+        self.intervalMs =intervalMs
         
         # Initialize processor
         self.processor = GrafanaDashboardProcessor(
@@ -60,7 +61,7 @@ class GrafanaDataExtractor:
             
             # Loop through each metric and process data
             for expr in expr_list:
-                body = fetcher.build_query_body(expr, from_time, to_time, type_name, uid)
+                body = fetcher.build_query_body(expr, from_time, to_time, type_name, uid,intervalMs=self.intervalMs)
                 json_data = fetcher.fetch_data(body)
                 
                 if json_data:

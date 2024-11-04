@@ -47,24 +47,24 @@ class GrafanaPrometheusDataFetcher:
         plt.grid(True)
         plt.show()
     
-    def build_query_body(self, expr, from_time, to_time, queries_type, uid):
+    def build_query_body(self, expr, from_time, to_time, queries_type, uid,intervalMs):
         """Builds the query body for fetching data."""
         return {
             "queries": [
                 {
                     "refId": "A",
-                    "expr": f"rate({expr}[$__rate_interval])",
+                    "expr": f"{expr}",
                     "range": True,
                     "datasource": {"type": queries_type, "uid": uid},
-                    "intervalMs": 15000,
+                    "intervalMs": intervalMs,
                     "maxDataPoints": 1539
                 },
                 {
                     "refId": "A-Instant",
-                    "expr": f"rate({expr}[$__rate_interval])",
+                    "expr": f"{expr}",
                     "instant": True,
                     "datasource": {"type": queries_type, "uid": uid},
-                    "intervalMs": 15000,
+                    "intervalMs": intervalMs,
                     "maxDataPoints": 1539
                 }
             ],

@@ -13,7 +13,8 @@ if __name__ == "__main__":
         dashboard_uid="opentelemetry-apm",
         username='admin',
         password='Imfine123$',
-        timeframes=['2024-10-15 13:06:55', '2024-10-25 14:06:55']
+        timeframes=['2024-10-15 13:06:55', '2024-10-25 14:06:55'],
+        intervalMs =180000
     )
     data = extractor.extract_data()
 
