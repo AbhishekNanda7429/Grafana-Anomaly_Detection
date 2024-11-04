@@ -24,7 +24,7 @@ class ProphetModel:
         """
         Load and prepare the dataset for Prophet.
         """
-        self.df = pd.read_csv(self.file_path)
+        self.df = pd.read_csv(self.file_path, low_memory=False)
         self.df.rename(columns={'Time': 'ds', 'Value': 'y'}, inplace=True)
         self.df['ds'] = pd.to_datetime(self.df['ds'])
     

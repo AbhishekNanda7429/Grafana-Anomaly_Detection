@@ -1,5 +1,6 @@
 from models.isolation_forest import IsolationForestModel
 from models.prophet_model import ProphetModel
+from models.adtk_model import ADTKAnomalyDetector
 from python_script.extractor import GrafanaDataExtractor
 
 # Example usage for two datasets
@@ -57,3 +58,12 @@ if __name__ == "__main__":
     # anomaly_detector_4.detect_anomalies()
     # anomaly_detector_4.send_data_to_api()
     # anomaly_detector_4.print_data_summary()
+
+    #Dataset 5 duration_milliseconds_sum
+    file_path_5 = 'C:\\Users\\abhis\\Desktop\\CloudBuilders\\Grafana-Anomaly\\Grafana-Anomaly_Detection\\integration\\dataframes\\duration_milliseconds_count.csv'  
+    api_url_5 = 'http://localhost:5000/duration-milliseconds-count'  
+    
+    anomaly_detector_5 = ADTKAnomalyDetector(file_path_5, api_url_5)
+    anomaly_detector_5.train()
+    anomaly_detector_5.predict_anomalies()
+    anomaly_detector_5.send_anomalies_to_api()
