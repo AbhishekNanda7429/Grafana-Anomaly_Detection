@@ -5,3 +5,4 @@ dataframes/
 __pycache__/
 anomalies/
 cleaned_df/
+segregated_data/
