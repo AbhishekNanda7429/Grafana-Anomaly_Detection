@@ -4,3 +4,4 @@ output_json/
 dataframes/
 __pycache__/
 anomalies/
+cleaned_df/
