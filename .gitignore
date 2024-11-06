@@ -6,3 +6,4 @@ __pycache__/
 anomalies/
 cleaned_df/
 segregated_data/
+anomaly_trial_codes/
