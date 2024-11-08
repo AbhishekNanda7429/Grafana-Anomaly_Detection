@@ -4,7 +4,7 @@ from Nan_value_treatment import DataCleaner
 if __name__ == "__main__":
 
 
-    file_path = "C:\\Users\\abhis\\Desktop\\CloudBuilders\\Grafana-Anomaly\\Grafana-Anomaly_Detection\\integration\\dataframes\\duration_milliseconds_bucket.csv"
+    file_path = "C:\\Users\\abhis\\Desktop\\CloudBuilders\\Grafana-Anomaly\\Grafana-Anomaly_Detection\\segregated_data\\PR95 Latency-data-2024-11-07 17_18_56.csv"
     output_folder ="cleaned_df"
     cleaner = DataCleaner(file_path)
     cleaned_df = cleaner.load_and_clean_data()
