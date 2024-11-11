@@ -7,3 +7,8 @@ anomalies/
 cleaned_df/
 segregated_data/
 anomaly_trial_codes/
+newData/
+old_data/
+output_files/
+integrationV2/
+models/
