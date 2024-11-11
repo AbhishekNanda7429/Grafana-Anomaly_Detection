@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI, HTTPException, File, UploadFile, Form
 from pydantic import BaseModel
-from anaomaly_detection import AnomalyDetectionModel
+from anomaly_detection import AnomalyDetectionModel
 import pandas as pd
 import pickle
 import os

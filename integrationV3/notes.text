@@ -1,0 +1,1 @@
+uvicorn api:app --reload -> to start the ml server
