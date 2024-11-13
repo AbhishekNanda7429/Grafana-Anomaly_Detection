@@ -1,10 +1,10 @@
-# anomaly_detection_model.py
 
 import os
 import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.ensemble import IsolationForest
 import pickle
+import boto3
+from sklearn.ensemble import IsolationForest
+from botocore.exceptions import NoCredentialsError
 
 class AnomalyDetectionModel:
     def __init__(self, threshold_multiplier, data, var):
@@ -12,11 +12,9 @@ class AnomalyDetectionModel:
         self.data = data  # Accepting DataFrame directly
         self.var = var
         self.model = None
-        
 
     def load_data(self):
         # Load dataset and preprocess
-        # self.data = pd.read_csv(self.filepath)
         self.data['Time'] = pd.to_datetime(self.data['Time'])
         self.data.set_index('Time', inplace=True)
         self.data = self.data.dropna()
@@ -55,34 +53,51 @@ class AnomalyDetectionModel:
         )
         self.data['Hybrid_Anomaly'] = self.data['Threshold_Anomaly'] | self.data['ML_Anomaly'].astype(bool)
 
-    def save_model(self, model_folder="models"):
-        # Save the model to the specified folder
-        os.makedirs(model_folder, exist_ok=True)
-        model_filename = os.path.join(model_folder, f"{self.var}_model.pkl")
+    def save_model(self, model_filename):
+        # Save the model to the specified file
         with open(model_filename, 'wb') as file:
             pickle.dump(self.model, file)
-        print(f"Model saved to {model_filename}")
+        print(f"Model temporarily saved to {model_filename}")
+        return model_filename
 
-    def run_pipeline(self, model_folder="models"):
+    def upload_to_s3(self, model_filename, bucket_name="anomaly-dataset-cbt", s3_folder_path="models"):
+        """
+        Uploads a file to an S3 bucket in a specified folder path.
+
+        Parameters:
+        - model_filename (str): Local path to the file to upload
+        - bucket_name (str): Name of the target S3 bucket
+        - s3_folder_path (str): Folder path within the S3 bucket
+        """
+        s3_file_path = f"{s3_folder_path}/{model_filename.split('/')[-1]}"
+        
+        # Initialize the S3 client
+        s3 = boto3.client('s3')
+        
+        try:
+            s3.upload_file(model_filename, bucket_name, s3_file_path)
+            print(f"File {model_filename} uploaded to {bucket_name}/{s3_file_path}")
+        except FileNotFoundError:
+            print(f"The file {model_filename} was not found.")
+        except NoCredentialsError:
+            print("Credentials not available for AWS S3 access.")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
+    def run_pipeline(self, bucket_name="anomaly-dataset-cbt", s3_folder_path="models"):
+        # Create dynamic model filename based on var with "_model" suffix
+        model_filename = f"{self.var}_model.pkl"
+        
         self.load_data()
         self.calculate_rolling_statistics()
         self.calculate_residuals()
         self.train_isolation_forest()
         self.detect_anomalies()
-        self.save_model(model_folder)
-        # self.plot_results()
-
-    # def plot_results(self):
-    #     # Plotting results with anomalies highlighted
-    #     plt.figure(figsize=(15, 6))
-    #     plt.plot(self.data.index, self.data[f'GET /{self.var}'], label=f'GET /{self.var}')
-    #     plt.plot(self.data.index, self.data['Upper_Bound'], color='green', linestyle='--', label='Upper Bound')
-    #     plt.plot(self.data.index, self.data['Lower_Bound'], color='red', linestyle='--', label='Lower Bound')
-    #     plt.scatter(self.data[self.data['Hybrid_Anomaly'] == 1].index,
-    #                 self.data[self.data['Hybrid_Anomaly'] == 1][f'GET /{self.var}'],
-    #                 color='purple', label='Hybrid Anomaly', marker='x')
-    #     plt.xlabel('Time')
-    #     plt.ylabel(f'GET /{self.var} Value')
-    #     plt.title(f'Hybrid Anomaly Detection in GET /{self.var} Over Time')
-    #     plt.legend()
-    #     plt.show()
+        
+        # Save model locally and upload to S3
+        self.save_model(model_filename)
+        self.upload_to_s3(model_filename, bucket_name, s3_folder_path)
+        
+        # Remove temporary local file after upload
+        os.remove(model_filename)
+        print(f"Temporary file {model_filename} deleted after upload.")

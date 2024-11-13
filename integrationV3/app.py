@@ -1,4 +1,5 @@
 # app.py
+
 from fastapi import FastAPI, HTTPException, File, UploadFile, Form
 from pydantic import BaseModel
 from anomaly_detection import AnomalyDetectionModel
@@ -17,7 +18,9 @@ class ModelParams(BaseModel):
     threshold_multiplier: float
     s3_uri: str  # Accepting S3 bucket URL instead of filepath
     var: str
-    model_folder: str = "models"  # Optional parameter with default folder
+    bucket_name: str  # New field for specifying S3 bucket name
+    s3_folder_path: str = "models"  # Optional parameter with default folder path
+
 
 class PredictionParams(BaseModel):
     var: str
@@ -47,35 +50,12 @@ async def train_model(params: ModelParams):
             data=data,
             var=params.var
         )
-        model.run_pipeline(model_folder=params.model_folder)
-        return {"message": f"Model trained and saved for variable '{params.var}' in folder '{params.model_folder}'"}
+        # Run the pipeline, specifying the bucket and S3 path for saving the model
+        model.run_pipeline(bucket_name=params.bucket_name, s3_folder_path=params.s3_folder_path)
+
+        return {"message": f"Model trained and saved for variable '{params.var}' in bucket '{params.bucket_name}/{params.s3_folder_path}'"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-# @app.post("/train_model/")
-# async def train_model(
-#     threshold_multiplier: float = Form(...),
-#     filepath: UploadFile = File(...),
-#     var: str = Form(...),
-#     model_folder: str = Form("models")
-# ):
-#     # Read the file content directly from UploadFile
-#     file_content = await filepath.read()
-    
-#     # Initialize and run the model pipeline with in-memory file content
-#     try:
-#         # Assuming the AnomalyDetectionModel can accept file content directly
-#         model = AnomalyDetectionModel(
-#             threshold_multiplier=threshold_multiplier,
-#             filepath=file_content,  # Pass the in-memory content
-#             var=var
-#         )
-#         model.run_pipeline(model_folder=model_folder)
-        
-#         return {"message": f"Model trained and saved for variable '{var}' in folder '{model_folder}'"}
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
-
 
 @app.post("/predict/")
 async def predict(
