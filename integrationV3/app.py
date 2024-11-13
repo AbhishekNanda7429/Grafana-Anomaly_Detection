@@ -1,5 +1,4 @@
 # app.py
-
 from fastapi import FastAPI, HTTPException, File, UploadFile, Form
 from pydantic import BaseModel
 from anomaly_detection import AnomalyDetectionModel
@@ -8,13 +7,15 @@ import pickle
 import os
 import traceback
 from datetime import datetime
+import boto3
+from io import StringIO
 
 app = FastAPI()
 
 # Define request body schema using Pydantic
 class ModelParams(BaseModel):
     threshold_multiplier: float
-    filepath: str
+    s3_uri: str  # Accepting S3 bucket URL instead of filepath
     var: str
     model_folder: str = "models"  # Optional parameter with default folder
 
@@ -22,23 +23,59 @@ class PredictionParams(BaseModel):
     var: str
     model_folder: str = "models"  # Optional, defaults to "models"
 
+def download_from_s3(s3_uri):
+    s3 = boto3.client('s3')
+    bucket_name = s3_uri.split('/')[2]
+    key = '/'.join(s3_uri.split('/')[3:])
+    
+    csv_obj = s3.get_object(Bucket=bucket_name, Key=key)
+    body = csv_obj['Body'].read().decode('utf-8')
+    return pd.read_csv(StringIO(body))
+
 @app.post("/train_model/")
 async def train_model(params: ModelParams):
-    # Check if the file exists
-    if not os.path.isfile(params.filepath):
-        raise HTTPException(status_code=404, detail="Dataset file not found")
+    # Download the CSV data from S3 URL
+    try:
+        data = download_from_s3(params.s3_uri)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to download file from S3: {str(e)}")
     
     # Initialize and run the model pipeline
     try:
         model = AnomalyDetectionModel(
             threshold_multiplier=params.threshold_multiplier,
-            filepath=params.filepath,
+            data=data,
             var=params.var
         )
         model.run_pipeline(model_folder=params.model_folder)
         return {"message": f"Model trained and saved for variable '{params.var}' in folder '{params.model_folder}'"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# @app.post("/train_model/")
+# async def train_model(
+#     threshold_multiplier: float = Form(...),
+#     filepath: UploadFile = File(...),
+#     var: str = Form(...),
+#     model_folder: str = Form("models")
+# ):
+#     # Read the file content directly from UploadFile
+#     file_content = await filepath.read()
+    
+#     # Initialize and run the model pipeline with in-memory file content
+#     try:
+#         # Assuming the AnomalyDetectionModel can accept file content directly
+#         model = AnomalyDetectionModel(
+#             threshold_multiplier=threshold_multiplier,
+#             filepath=file_content,  # Pass the in-memory content
+#             var=var
+#         )
+#         model.run_pipeline(model_folder=model_folder)
+        
+#         return {"message": f"Model trained and saved for variable '{var}' in folder '{model_folder}'"}
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/predict/")
 async def predict(

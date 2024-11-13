@@ -7,16 +7,16 @@ from sklearn.ensemble import IsolationForest
 import pickle
 
 class AnomalyDetectionModel:
-    def __init__(self, threshold_multiplier, filepath, var):
+    def __init__(self, threshold_multiplier, data, var):
         self.threshold_multiplier = threshold_multiplier
-        self.filepath = filepath
+        self.data = data  # Accepting DataFrame directly
         self.var = var
         self.model = None
-        self.data = None
+        
 
     def load_data(self):
         # Load dataset and preprocess
-        self.data = pd.read_csv(self.filepath)
+        # self.data = pd.read_csv(self.filepath)
         self.data['Time'] = pd.to_datetime(self.data['Time'])
         self.data.set_index('Time', inplace=True)
         self.data = self.data.dropna()
@@ -63,6 +63,15 @@ class AnomalyDetectionModel:
             pickle.dump(self.model, file)
         print(f"Model saved to {model_filename}")
 
+    def run_pipeline(self, model_folder="models"):
+        self.load_data()
+        self.calculate_rolling_statistics()
+        self.calculate_residuals()
+        self.train_isolation_forest()
+        self.detect_anomalies()
+        self.save_model(model_folder)
+        # self.plot_results()
+
     # def plot_results(self):
     #     # Plotting results with anomalies highlighted
     #     plt.figure(figsize=(15, 6))
@@ -77,12 +86,3 @@ class AnomalyDetectionModel:
     #     plt.title(f'Hybrid Anomaly Detection in GET /{self.var} Over Time')
     #     plt.legend()
     #     plt.show()
-
-    def run_pipeline(self, model_folder="models"):
-        self.load_data()
-        self.calculate_rolling_statistics()
-        self.calculate_residuals()
-        self.train_isolation_forest()
-        self.detect_anomalies()
-        self.save_model(model_folder)
-        # self.plot_results()
