@@ -1,5 +1,6 @@
 # app.py
 
+import os
 from fastapi import FastAPI, HTTPException, File, UploadFile, Form
 from pydantic import BaseModel
 from anomaly_detection import AnomalyDetectionModel
@@ -8,13 +9,17 @@ import pandas as pd
 from datetime import datetime
 import boto3
 from io import StringIO
+from dotenv import load_dotenv  # Import dotenv to load .env variables
 
 app = FastAPI()
 
-# Set your S3 bucket and model prefix
-S3_BUCKET_NAME = "anomaly-dataset-cbt"
-S3_MODEL_PREFIX = "models"
-S3_OUTPUT_PREFIX = "outputs"
+# Load environment variables from the .env file
+load_dotenv()
+
+# Read from environment variables
+S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")  # default value can be set if variable is not found
+S3_MODEL_PREFIX = os.getenv("S3_MODEL_PREFIX")
+S3_OUTPUT_PREFIX = os.getenv("S3_OUTPUT_PREFIX")
 
 # Initialize PredictionService with S3 parameters
 prediction_service = PredictionService(s3_bucket_name=S3_BUCKET_NAME, s3_model_prefix=S3_MODEL_PREFIX,  s3_output_prefix=S3_OUTPUT_PREFIX)
@@ -24,8 +29,8 @@ class ModelParams(BaseModel):
     threshold_multiplier: float
     s3_uri: str  # Accepting S3 bucket URL instead of filepath
     var: str
-    bucket_name: str  # New field for specifying S3 bucket name
-    s3_folder_path: str = "models"  # Optional parameter with default folder path
+    # bucket_name: str  # New field for specifying S3 bucket name
+    # s3_folder_path: str = "models"  # Optional parameter with default folder path
 
 class PredictionParams(BaseModel):
     var: str
@@ -56,9 +61,9 @@ async def train_model(params: ModelParams):
             var=params.var
         )
         # Run the pipeline, specifying the bucket and S3 path for saving the model
-        model.run_pipeline(bucket_name=params.bucket_name, s3_folder_path=params.s3_folder_path)
+        model.run_pipeline(bucket_name=S3_BUCKET_NAME, s3_folder_path=S3_MODEL_PREFIX)
 
-        return {"message": f"Model trained and saved for variable '{params.var}' in bucket '{params.bucket_name}/{params.s3_folder_path}'"}
+        return {"message": f"Model trained and saved for variable '{params.var}' in bucket '{S3_BUCKET_NAME}/{S3_MODEL_PREFIX}'"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

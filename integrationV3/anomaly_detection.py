@@ -1,3 +1,4 @@
+# anomaly_detection.py
 
 import os
 import pandas as pd
@@ -60,7 +61,7 @@ class AnomalyDetectionModel:
         print(f"Model temporarily saved to {model_filename}")
         return model_filename
 
-    def upload_to_s3(self, model_filename, bucket_name="anomaly-dataset-cbt", s3_folder_path="models"):
+    def upload_to_s3(self, model_filename, bucket_name, s3_folder_path):
         """
         Uploads a file to an S3 bucket in a specified folder path.
 
@@ -84,7 +85,7 @@ class AnomalyDetectionModel:
         except Exception as e:
             print(f"An error occurred: {e}")
 
-    def run_pipeline(self, bucket_name="anomaly-dataset-cbt", s3_folder_path="models"):
+    def run_pipeline(self, bucket_name, s3_folder_path):
         # Create dynamic model filename based on var with "_model" suffix
         model_filename = f"{self.var}_model.pkl"
         

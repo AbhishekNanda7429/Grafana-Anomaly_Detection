@@ -12,7 +12,7 @@ import io
 import urllib.parse
 
 class PredictionService:
-    def __init__(self, s3_bucket_name, s3_model_prefix="models", s3_output_prefix="outputs"):
+    def __init__(self, s3_bucket_name, s3_model_prefix, s3_output_prefix):
         self.s3_bucket_name = s3_bucket_name
         self.s3_model_prefix = s3_model_prefix
         self.s3_output_prefix = s3_output_prefix

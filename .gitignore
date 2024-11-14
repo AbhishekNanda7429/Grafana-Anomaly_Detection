@@ -12,3 +12,4 @@ old_data/
 output_files/
 integrationV2/
 models/
+.env/
