@@ -67,19 +67,19 @@ class PredictionService:
         data_df["Prediction"] = anomaly_flags
         return data_df
 
-    def save_predictions(self, data_df, input_filename):
-        # Prepare the output filename
-        output_filename = f"{os.path.splitext(input_filename)[0]}_predictions_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    def save_predictions(self, data_df, var):
+        # Prepare the output filename with the model name (var)
+        output_filename = f"{var}_predictions_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
         
         # Convert the DataFrame to CSV in memory
         csv_buffer = io.StringIO()
         data_df.to_csv(csv_buffer, index=False)
         csv_buffer.seek(0)  # Go to the beginning of the in-memory file
         
-        # Create the S3 key for the output file
+        # Create the S3 key for the output file in the outputs folder
         output_key = f"{self.s3_output_prefix}/{output_filename}"
         
-        # Upload the CSV file to the S3 bucket
+        # Upload the CSV file to the S3 bucket in the outputs folder
         try:
             self.s3_client.put_object(
                 Bucket=self.s3_bucket_name,
@@ -104,8 +104,8 @@ class PredictionService:
             data_df = self.prepare_data(data_df, var)
             data_df = self.predict(data_df, model)
             
-            # Save the predictions back to S3
-            output_filename = self.save_predictions(data_df, s3_uri)
+            # Save the predictions back to S3 (in the "outputs" folder)
+            output_filename = self.save_predictions(data_df, var)
             return {"message": "Prediction completed", "output_file": output_filename}
         except Exception as e:
             error_detail = traceback.format_exc()
