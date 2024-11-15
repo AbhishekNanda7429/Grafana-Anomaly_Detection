@@ -51,7 +51,15 @@ class PredictionService:
     def prepare_data(self, data_df, var):
         value_column = f"GET /{var}"
         if value_column in data_df.columns:
+            # Calculate rolling mean and standard deviation for Upper and Lower Bound
             data_df['Rolling_Mean'] = data_df[value_column].rolling(window=10).mean()
+            data_df['Rolling_Std'] = data_df[value_column].rolling(window=10).std()
+
+            # Calculate Upper and Lower Bounds
+            data_df['Upper_Bound'] = data_df['Rolling_Mean'] + 3 * data_df['Rolling_Std']
+            data_df['Lower_Bound'] = data_df['Rolling_Mean'] - 3 * data_df['Rolling_Std']
+
+            # Calculate Residuals
             data_df['Residual'] = data_df[value_column] - data_df['Rolling_Mean']
             data_df.dropna(inplace=True)
         elif "Residual" not in data_df.columns:
@@ -70,15 +78,22 @@ class PredictionService:
     def save_predictions(self, data_df, var):
         # Prepare the output filename with the model name (var)
         output_filename = f"{var}_predictions_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+
+        # Ensure 'Upper_Bound' and 'Lower_Bound' are part of the output CSV
+        if 'Upper_Bound' not in data_df.columns or 'Lower_Bound' not in data_df.columns:
+            raise HTTPException(
+                status_code=500,
+                detail="Upper_Bound and Lower_Bound not found in DataFrame. Ensure they are calculated before saving."
+            )
         
         # Convert the DataFrame to CSV in memory
         csv_buffer = io.StringIO()
         data_df.to_csv(csv_buffer, index=False)
         csv_buffer.seek(0)  # Go to the beginning of the in-memory file
-        
+
         # Create the S3 key for the output file in the outputs folder
         output_key = f"{self.s3_output_prefix}/{output_filename}"
-        
+
         # Upload the CSV file to the S3 bucket in the outputs folder
         try:
             self.s3_client.put_object(
