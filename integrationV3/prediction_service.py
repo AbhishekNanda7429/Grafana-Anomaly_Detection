@@ -79,7 +79,7 @@ class PredictionService:
     def save_predictions(self, data_df, value_column):
         # Prepare the output filename with the model name (value_column)
         sanitized_column_name = value_column.replace("/", "__").replace(" ", "_")
-        output_filename = f"{sanitized_column_name}_predictions_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        output_filename = f"{sanitized_column_name}_predictions.csv"
 
         # Ensure 'Upper_Bound' and 'Lower_Bound' are part of the output CSV
         if 'Upper_Bound' not in data_df.columns or 'Lower_Bound' not in data_df.columns:
