@@ -13,3 +13,4 @@ output_files/
 integrationV2/
 models/
 .env
+*/grafana-anomaly/data/*
