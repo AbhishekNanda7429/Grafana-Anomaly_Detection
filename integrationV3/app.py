@@ -343,7 +343,8 @@ async def full_pipeline(request: FetchDashboardDataRequest):
                 #     output_file = output_dir / f"{service_name}_{col.replace(' ', '_').replace('/', '_')}_result.csv"
                 #     data_fetcher.save_dataframe(df, output_file)
                 for col, df in clean_data.items():
-                    output_file = output_dir / f"{service_name.replace('-', '')}_{col.replace(' ', '_').replace('/', '_slash_')}_result.csv"
+                    # output_file = output_dir / f"{service_name.replace('-', '')}_{col.replace(' ', '_').replace('/', '_slash_')}_result.csv"
+                    output_file = output_dir / f"{service_name.replace('-', '')}_{col.replace(' ', '_').replace('/', '_slash_').replace('*', '_star_')}_result.csv"
                     print(f"Saving data to {output_file} for service_name {service_name}")
                     data_fetcher.save_dataframe(df, output_file)
                     # print(df)

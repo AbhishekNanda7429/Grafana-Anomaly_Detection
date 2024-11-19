@@ -31,18 +31,7 @@ class GrafanaDataFetcher:
         to_timestamp = GrafanaDataFetcher.convert_to_timestamp(timeframe[1])
         duration_seconds = (int(to_timestamp) - int(from_timestamp)) / 1000
 
-        if duration_seconds <= 3600:
-            return from_timestamp, to_timestamp, 5000, 1000
-        elif duration_seconds <= 86400:
-            return from_timestamp, to_timestamp, 15000, 3000
-        elif duration_seconds <= 259200:
-            return from_timestamp, to_timestamp, 30000, 4000
-        elif duration_seconds <= 604800:
-            return from_timestamp, to_timestamp, 60000, 5000
-        elif duration_seconds <= 2592000:
-            return from_timestamp, to_timestamp, 120000, 10000
-        else:
-            return from_timestamp, to_timestamp, 300000, 20000
+        return from_timestamp, to_timestamp, 60000, 50000
 
     @staticmethod
     def custom_escape(route):
