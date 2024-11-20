@@ -174,7 +174,7 @@
 
 #==============================
 
-#base code- runs the routes separately
+# base code- runs the routes separately
 # @app.post("/train_model/")
 # async def train_model(params: ModelParams):
 #     # Download the CSV data from S3 URL
@@ -266,9 +266,10 @@
 #         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
 #==============================
-
+# # app.py
+ 
 import os
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException,Form
 from pydantic import BaseModel
 import pandas as pd
 from pathlib import Path
@@ -277,6 +278,8 @@ from typing import List
 from GrafanaDataFetcher.requestcall import PrometheusDashboardClient
 from GrafanaDataFetcher.grafana_data_fetcher import GrafanaDataFetcher
 from anomaly_detection import AnomalyDetectionModel
+from prediction_service import PredictionService
+
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -287,6 +290,14 @@ load_dotenv()
 
 S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
 S3_MODEL_PREFIX = os.getenv("S3_MODEL_PREFIX")
+S3_OUTPUT_PREFIX = os.getenv("S3_OUTPUT_PREFIX")
+
+# Initialize PredictionService with S3 parameters
+prediction_service = PredictionService(
+    s3_bucket_name=S3_BUCKET_NAME,
+    s3_model_prefix=S3_MODEL_PREFIX,
+    s3_output_prefix=S3_OUTPUT_PREFIX
+)
 
 # Input schema for the API request
 class FetchDashboardDataRequest(BaseModel):
@@ -381,3 +392,16 @@ async def full_pipeline(request: FetchDashboardDataRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Pipeline failed: {str(e)}")
 
+# base code- runs the routes separately
+@app.post("/predict/")
+async def predict(
+    s3_uri: str = Form(...)
+):
+    # Run the prediction pipeline and return the result
+    try:
+        # Run the prediction pipeline directly using the S3 URI
+        result = prediction_service.run_prediction_pipeline(s3_uri)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+    
