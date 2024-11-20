@@ -244,6 +244,8 @@
 #         print(f"Temporary file {model_filename} deleted after upload.")
 #========================================================
 
+# # anomaly_detection.py
+
 import os
 import pandas as pd
 import pickle
@@ -283,9 +285,14 @@ class AnomalyDetectionModel:
         """
         Calculate rolling mean and standard deviation for anomaly thresholds.
         """
+        print(f"Data shape before rolling stats: {self.data.shape}")
+        
         self.data['Time_Diff'] = self.data.index.to_series().diff().dt.total_seconds()
         average_interval = self.data['Time_Diff'].mean()
         points_per_hour = int(3600 / average_interval)
+
+        # Safeguard to ensure the rolling window size doesn't exceed available data points
+        points_per_hour = max(1, min(points_per_hour, len(self.data)))
 
         self.data['Rolling_Mean'] = self.data[self.var].rolling(window=points_per_hour).mean()
         self.data['Rolling_Std'] = self.data[self.var].rolling(window=points_per_hour).std()
@@ -303,7 +310,26 @@ class AnomalyDetectionModel:
         """
         Train the Isolation Forest model for anomaly detection.
         """
-        self.model = IsolationForest(contamination=0.01, n_estimators=200, max_samples=0.8, random_state=42)
+        print(f"Residuals data shape: {self.data[['Residual']].shape}")
+        
+        if self.data[['Residual']].empty:
+            raise ValueError("No data available to train IsolationForest.")
+        
+        n_samples = len(self.data)
+        
+        # Dynamically set max_samples to ensure it is within valid range
+        max_samples = min(0.8 * n_samples, n_samples)  # Use 80% of the data or total samples, whichever is smaller
+        max_samples = max(1, int(max_samples))  # Ensure at least 1 sample is used
+        
+        print(f"Using max_samples={max_samples} for IsolationForest training.")
+        
+        self.model = IsolationForest(
+            contamination=0.01,
+            n_estimators=200,
+            max_samples=max_samples,
+            random_state=42
+        )
+        
         self.model.fit(self.data[['Residual']])
         self.data['ML_Anomaly'] = self.model.predict(self.data[['Residual']])
         self.data['ML_Anomaly'] = self.data['ML_Anomaly'].map({1: 0, -1: 1})
