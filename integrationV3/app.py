@@ -295,8 +295,8 @@ class FetchDashboardDataRequest(BaseModel):
     dashboard_uid: str
     timeframe: List[str]  # Two timestamps: start and end
 
-
-@app.post("/full_pipeline/")
+#api to extract data, train data and save the data
+@app.post("/extract_train_save/")
 async def full_pipeline(request: FetchDashboardDataRequest):
     """
     Complete pipeline: Fetch data, train models for each CSV file, and save them to S3.
