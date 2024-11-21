@@ -253,6 +253,7 @@ import boto3
 from sklearn.ensemble import IsolationForest
 from botocore.exceptions import NoCredentialsError
 
+
 class AnomalyDetectionModel:
     def __init__(self, threshold_multiplier, data, csv_filename=None):
         """

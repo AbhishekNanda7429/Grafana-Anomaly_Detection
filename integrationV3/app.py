@@ -279,7 +279,9 @@ from GrafanaDataFetcher.requestcall import PrometheusDashboardClient
 from GrafanaDataFetcher.grafana_data_fetcher import GrafanaDataFetcher
 from anomaly_detection import AnomalyDetectionModel
 from prediction_service import PredictionService
+# import sklearn
 
+# print(sklearn.__version__)
 
 # Initialize FastAPI app
 app = FastAPI()

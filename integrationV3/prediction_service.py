@@ -39,7 +39,7 @@ class PredictionService:
         parsed_uri = urllib.parse.urlparse(s3_uri)
         base_filename = os.path.basename(parsed_uri.path)  # Get filename from path
         # Replace special characters like "/" with "_slash_" for safe model filename
-        model_filename = base_filename.replace("/", "_slash_").replace(" ", "").replace(".csv", "_model.pkl")
+        model_filename = base_filename.replace("/", "_slash_").replace(" ", "").replace("_result.csv", "_model.pkl")
         print(f"Model filename derived from S3 URI: {model_filename}")
         return model_filename
 
@@ -71,8 +71,9 @@ class PredictionService:
 
     def predict(self, data_df, model):
         predictions = model.predict(data_df[['Residual']])
-        anomaly_flags = [1 if pred == -1 else 0 for pred in predictions]
-        data_df["Prediction"] = anomaly_flags
+        #Map predictions: -1 (anomaly) -> True, 1 (normal) -> False
+        anomaly_flags = [True if pred == -1 else False for pred in predictions]
+        data_df["Anomaly"] = anomaly_flags
         return data_df
 
     def save_predictions(self, data_df, model_filename):
