@@ -24,14 +24,53 @@ class GrafanaDataFetcher:
         dt = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
         return str(int(dt.timestamp() * 1000))
 
+   
     @staticmethod
-    def calculate_dynamic_values(timeframe):
-        """Calculate intervalMs and maxDataPoints based on the timeframe duration."""
+    def calculate_dynamic_values(
+        timeframe, 
+        MIN_INTERVAL_MS=60000, 
+        MAX_INTERVAL_MS=3600000, 
+        MAX_DATA_POINTS=50000, 
+        INTERVAL_MULTIPLIER=2, 
+        BASE_DURATION=604800
+    ):
+        """
+        Efficiently calculate intervalMs and maxDataPoints based on the timeframe duration.
+        Dynamically generates intervals based on duration thresholds.
+
+        Args:
+            timeframe (list): A list containing the start and end time in the format ["YYYY-MM-DD HH:MM:SS", "YYYY-MM-DD HH:MM:SS"].
+            MIN_INTERVAL_MS (int): The minimum interval in milliseconds. Default is 60000 (1 minute).
+            MAX_INTERVAL_MS (int): The maximum interval in milliseconds. Default is 3600000 (1 hour).
+            MAX_DATA_POINTS (int): The maximum number of data points to fetch. Default is 50000.
+            INTERVAL_MULTIPLIER (int): The multiplier for intervalMs. Default is 2.
+            BASE_DURATION (int): The base duration in seconds for calculating intervalMs. Default is 604800 (7 days).
+        """
+        # Validate input
+        if not isinstance(timeframe, list) or len(timeframe) != 2:
+            raise ValueError("timeframe must be a list containing two elements: [start_time, end_time].")
+
+        # Convert timestamps and calculate duration
         from_timestamp = GrafanaDataFetcher.convert_to_timestamp(timeframe[0])
         to_timestamp = GrafanaDataFetcher.convert_to_timestamp(timeframe[1])
         duration_seconds = (int(to_timestamp) - int(from_timestamp)) / 1000
+        # print("Duration (seconds):", duration_seconds)
 
-        return from_timestamp, to_timestamp, 60000, 50000
+        # Dynamically calculate intervalMs
+        intervalMs = MIN_INTERVAL_MS
+        while intervalMs < MAX_INTERVAL_MS:
+            # Calculate the threshold for the current intervalMs based on the base duration
+            threshold = (BASE_DURATION * intervalMs) / MIN_INTERVAL_MS
+            if duration_seconds < threshold:
+                break
+            intervalMs *= INTERVAL_MULTIPLIER
+
+        # Ensure intervalMs doesn't exceed MAX_INTERVAL_MS
+        intervalMs = min(intervalMs, MAX_INTERVAL_MS)
+
+        # Return calculated values
+        return from_timestamp, to_timestamp, intervalMs, MAX_DATA_POINTS
+
 
     @staticmethod
     def custom_escape(route):
