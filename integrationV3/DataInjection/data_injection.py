@@ -267,8 +267,6 @@ class S3DataInjector:
 #     athena_database = "athena_database"
 #     table_name = "express_GET__slash_io_task_prediction"
 
-#     aws_access_key_id = "XXXXXXX"
-#     aws_secret_access_key = "XXXXXXXXXX"
 #     file_path = r'C:\Users\Admin\Documents\Projects\CBT_VISTA\Backend_data\cbt_vista_backend-\injection_data\express_GET__slash_io_task_prediction.csv'
     
 #     df = pd.read_csv(file_path)
