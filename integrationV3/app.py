@@ -11,7 +11,7 @@ from GrafanaDataFetcher.requestcall import PrometheusDashboardClient
 from GrafanaDataFetcher.grafana_data_fetcher import GrafanaDataFetcher
 from anomaly_detection import AnomalyDetectionModel
 from prediction_service import PredictionService
-
+from GrafanaDataFetcher.grafana_data_processor import GrafanaDataProcessor
 # Initialize FastAPI app
 app = FastAPI()
 
@@ -135,4 +135,21 @@ async def predict(
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+
+
+
+@app.post("/predict_cron/")
+async def predict_corn():
+    base_url = "https://op.cloudbuilders.io"
+    username = 'admin'
+    password = 'Imfine123$'
+    dashboard_uid = "opentelemetry-apm"
+    output_dir = "grafana-anomaly/data"
+    timeframe = ['2024-11-01 10:00:00', '2024-11-14 00:00:00']
+
+    # Instantiate and run the processor
+    processor = GrafanaDataProcessor(base_url, username, password, dashboard_uid, output_dir)
+    processor.run(timeframe)
+    return {"status": "success", "message": "Prediction completed successfully."}
+    
     
