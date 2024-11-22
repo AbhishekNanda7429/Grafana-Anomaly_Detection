@@ -82,12 +82,7 @@ async def full_pipeline(request: FetchDashboardDataRequest):
             clean_data = data_fetcher.process_and_clean_data(result_df)
 
             if clean_data:
-                # for col, df in clean_data.items():
-                #     # Save the clean data locally
-                #     output_file = output_dir / f"{service_name}_{col.replace(' ', '_').replace('/', '_')}_result.csv"
-                #     data_fetcher.save_dataframe(df, output_file)
                 for col, df in clean_data.items():
-                    # output_file = output_dir / f"{service_name.replace('-', '')}_{col.replace(' ', '_').replace('/', '_slash_')}_result.csv"
                     output_file = output_dir / f"{service_name.replace('-', '')}_{col.replace(' ', '_').replace('/', '_slash_').replace('*', '_star_')}_result.csv"
                     print(f"Saving data to {output_file} for service_name {service_name}")
                     data_fetcher.save_dataframe(df, output_file)
@@ -124,41 +119,6 @@ async def full_pipeline(request: FetchDashboardDataRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Pipeline failed: {str(e)}")
-
-# base code- runs the routes separately
-# @app.post("/predict/")
-# async def predict(
-#     s3_uri: str = Form(...)
-# ):
-#     # Run the prediction pipeline and return the result
-#     try:
-#         # Run the prediction pipeline directly using the S3 URI
-#         result = prediction_service.run_prediction_pipeline(s3_uri)
-#         return result
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
-
-# Function to process prediction with dynamic timeframe
-# def predict_cron_job():
-#     base_url = "https://op.cloudbuilders.io"
-#     username = 'admin'
-#     password = 'Imfine123$'
-#     dashboard_uid = "opentelemetry-apm"
-#     output_dir = "grafana-anomaly/data"
-
-#     # Calculate dynamic timeframe: last 15 minutes
-#     end_time = datetime.utcnow()
-#     start_time = end_time - timedelta(minutes=100)
-#     timeframe = [start_time.strftime('%Y-%m-%d %H:%M:%S'), end_time.strftime('%Y-%m-%d %H:%M:%S')]
-#     print(timeframe)
-
-#     # Instantiate and run the processor
-#     processor = GrafanaDataProcessor(base_url, username, password, dashboard_uid, output_dir)
-#     try:
-#         processor.run(timeframe)
-#         print(f"Prediction completed successfully for timeframe {timeframe}")
-#     except Exception as e:
-#         print(f"Prediction failed: {str(e)}")
 
 def predict_cron_job():
     base_url = "https://op.cloudbuilders.io"
