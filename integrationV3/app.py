@@ -132,7 +132,7 @@ def predict_cron_job():
 
     # Calculate dynamic timeframe: last 15 minutes
     # Adjust current UTC time by the offset
-    end_time = datetime.utcnow() + timedelta(seconds=utc_offset_seconds)
+    end_time = datetime.utcnow() 
     
     start_time = end_time - timedelta(minutes=100)
     timeframe = [start_time.strftime('%Y-%m-%d %H:%M:%S'), end_time.strftime('%Y-%m-%d %H:%M:%S')]
