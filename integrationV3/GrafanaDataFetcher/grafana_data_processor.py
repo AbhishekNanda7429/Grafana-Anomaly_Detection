@@ -89,6 +89,7 @@ class GrafanaDataProcessor:
                     #########
                     #####################
                     
+                    print("anomaly data: \n ",anomaly_df)
                     s3_bucket_name = "anomaly-detection-bucket-cloudbuilders"#env
                     athena_database = "athena_database"#env
                     # table_name = "express_GET__slash_io_task_prediction"
@@ -107,8 +108,10 @@ class GrafanaDataProcessor:
                     print(result_df)
                     print("Data injection complete.")
                     # print(f"Saving data to {output_file} for service_name {service_name}")
+                   
 
         except Exception as e:
+            print("anomaly data: /n",anomaly_df)
             print(f"Error processing data for {service_name}: {e}")
 
     def process_all_services(self):

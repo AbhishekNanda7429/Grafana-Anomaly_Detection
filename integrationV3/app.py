@@ -139,6 +139,27 @@ async def full_pipeline(request: FetchDashboardDataRequest):
 #         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
 # Function to process prediction with dynamic timeframe
+# def predict_cron_job():
+#     base_url = "https://op.cloudbuilders.io"
+#     username = 'admin'
+#     password = 'Imfine123$'
+#     dashboard_uid = "opentelemetry-apm"
+#     output_dir = "grafana-anomaly/data"
+
+#     # Calculate dynamic timeframe: last 15 minutes
+#     end_time = datetime.utcnow()
+#     start_time = end_time - timedelta(minutes=100)
+#     timeframe = [start_time.strftime('%Y-%m-%d %H:%M:%S'), end_time.strftime('%Y-%m-%d %H:%M:%S')]
+#     print(timeframe)
+
+#     # Instantiate and run the processor
+#     processor = GrafanaDataProcessor(base_url, username, password, dashboard_uid, output_dir)
+#     try:
+#         processor.run(timeframe)
+#         print(f"Prediction completed successfully for timeframe {timeframe}")
+#     except Exception as e:
+#         print(f"Prediction failed: {str(e)}")
+
 def predict_cron_job():
     base_url = "https://op.cloudbuilders.io"
     username = 'admin'
@@ -146,10 +167,16 @@ def predict_cron_job():
     dashboard_uid = "opentelemetry-apm"
     output_dir = "grafana-anomaly/data"
 
+    # UTC offset in seconds
+    utc_offset_seconds = 19800  # 5 hours 30 minutes
+
     # Calculate dynamic timeframe: last 15 minutes
-    end_time = datetime.utcnow()
-    start_time = end_time - timedelta(minutes=15)
+    # Adjust current UTC time by the offset
+    end_time = datetime.utcnow() + timedelta(seconds=utc_offset_seconds)
+    
+    start_time = end_time - timedelta(minutes=100)
     timeframe = [start_time.strftime('%Y-%m-%d %H:%M:%S'), end_time.strftime('%Y-%m-%d %H:%M:%S')]
+    print(f"Adjusted Timeframe (with UTC Offset): {timeframe}")
 
     # Instantiate and run the processor
     processor = GrafanaDataProcessor(base_url, username, password, dashboard_uid, output_dir)
@@ -161,7 +188,7 @@ def predict_cron_job():
 
 # Initialize APScheduler
 scheduler = BackgroundScheduler()
-scheduler.add_job(predict_cron_job, "interval", minutes=15)
+scheduler.add_job(predict_cron_job, "interval", minutes=100)
 scheduler.start()
 
 # Endpoint to trigger the cron job manually (optional)
