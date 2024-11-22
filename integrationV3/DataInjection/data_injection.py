@@ -25,12 +25,14 @@ class S3DataInjector:
         self.s3_client = boto3.client(
             's3',
             aws_access_key_id=aws_access_key_id,
-            aws_secret_access_key=aws_secret_access_key
+            aws_secret_access_key=aws_secret_access_key,
+            region_name= os.getenv('AWS_DEFAULT_REGION_ATHENA')
         )
         self.athena_client = boto3.client(
             "athena",
             aws_access_key_id=aws_access_key_id,
-            aws_secret_access_key=aws_secret_access_key
+            aws_secret_access_key=aws_secret_access_key,
+            region_name= os.getenv('AWS_DEFAULT_REGION_ATHENA')
         )
         self.s3_bucket_name = s3_bucket_name
         self.athena_database = athena_database
@@ -190,7 +192,7 @@ class S3DataInjector:
             partitions (dict): A dictionary where keys are partition specs and values are S3 paths.
         """
         sanitized_table_name = self.sanitize_table_name(table_name)
-        batch_size = 50  # Number of partitions per batch
+        batch_size = 25  # Number of partitions per batch
         partition_items = list(partitions.items())
 
         for i in range(0, len(partition_items), batch_size):

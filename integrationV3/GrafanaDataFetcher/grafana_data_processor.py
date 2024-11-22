@@ -1,3 +1,5 @@
+#grafana_data_processor
+
 from http import server
 from GrafanaDataFetcher.requestcall import PrometheusDashboardClient
 from GrafanaDataFetcher.grafana_data_fetcher import GrafanaDataFetcher
@@ -9,15 +11,7 @@ from prediction_service import PredictionService
 import os 
 from DataInjection.data_injection import S3DataInjector
 
-S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
-S3_MODEL_PREFIX = os.getenv("S3_MODEL_PREFIX")
-S3_OUTPUT_PREFIX = os.getenv("S3_OUTPUT_PREFIX")
-# Initialize PredictionService with S3 parameters
-prediction_service = PredictionService(
-    s3_bucket_name=S3_BUCKET_NAME,
-    s3_model_prefix=S3_MODEL_PREFIX,
-    s3_output_prefix=S3_OUTPUT_PREFIX
-)
+
 
 
 class GrafanaDataProcessor:
@@ -35,6 +29,18 @@ class GrafanaDataProcessor:
         self.service_names = []
         self.http_routes = []
         self.timeframe = []
+        S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
+        S3_MODEL_PREFIX = os.getenv("S3_MODEL_PREFIX")
+        # S3_OUTPUT_PREFIX = os.getenv("S3_OUTPUT_PREFIX")
+
+        # Initialize PredictionService with S3 parameters
+        self.prediction_service = PredictionService(
+            s3_bucket_name=S3_BUCKET_NAME,
+            s3_model_prefix=S3_MODEL_PREFIX,
+            # s3_output_prefix=S3_OUTPUT_PREFIX
+        )
+
+
 
     def fetch_dashboard_data(self, timeframe):
         """
@@ -77,8 +83,9 @@ class GrafanaDataProcessor:
                     # print(f"Saving data to {output_file} for service_name {service_name}")
                     # data_fetcher.save_dataframe(df, output_file)
                     ##############anomaly detection code here
-                    
-                    anomaly_df = prediction_service.run_prediction_pipeline(df,model_filename)
+                    print(f"there is the model filename:", model_filename)
+                    anomaly_df = self.prediction_service.run_prediction_pipeline(df,model_filename)
+
                     #########
                     #####################
                     
@@ -90,6 +97,7 @@ class GrafanaDataProcessor:
                     
                     aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID_ATHENA")
                     aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY_ATHENA")
+                    
                     
 
                     injector = S3DataInjector(

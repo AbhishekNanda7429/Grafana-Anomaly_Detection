@@ -19,15 +19,16 @@ app = FastAPI()
 from dotenv import load_dotenv
 load_dotenv()
 
+
 S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
 S3_MODEL_PREFIX = os.getenv("S3_MODEL_PREFIX")
-S3_OUTPUT_PREFIX = os.getenv("S3_OUTPUT_PREFIX")
+# S3_OUTPUT_PREFIX = os.getenv("S3_OUTPUT_PREFIX")
 
 # Initialize PredictionService with S3 parameters
 prediction_service = PredictionService(
     s3_bucket_name=S3_BUCKET_NAME,
     s3_model_prefix=S3_MODEL_PREFIX,
-    s3_output_prefix=S3_OUTPUT_PREFIX
+    # s3_output_prefix=S3_OUTPUT_PREFIX
 )
 
 # Input schema for the API request
@@ -124,19 +125,17 @@ async def full_pipeline(request: FetchDashboardDataRequest):
         raise HTTPException(status_code=500, detail=f"Pipeline failed: {str(e)}")
 
 # base code- runs the routes separately
-@app.post("/predict/")
-async def predict(
-    s3_uri: str = Form(...)
-):
-    # Run the prediction pipeline and return the result
-    try:
-        # Run the prediction pipeline directly using the S3 URI
-        result = prediction_service.run_prediction_pipeline(s3_uri)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
-
-
+# @app.post("/predict/")
+# async def predict(
+#     s3_uri: str = Form(...)
+# ):
+#     # Run the prediction pipeline and return the result
+#     try:
+#         # Run the prediction pipeline directly using the S3 URI
+#         result = prediction_service.run_prediction_pipeline(s3_uri)
+#         return result
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
 @app.post("/predict_cron/")
 async def predict_corn():
@@ -145,7 +144,7 @@ async def predict_corn():
     password = 'Imfine123$'
     dashboard_uid = "opentelemetry-apm"
     output_dir = "grafana-anomaly/data"
-    timeframe = ['2024-11-01 10:00:00', '2024-11-14 00:00:00']
+    timeframe = ['2024-11-14 10:00:00', '2024-11-21 00:00:00']
 
     # Instantiate and run the processor
     processor = GrafanaDataProcessor(base_url, username, password, dashboard_uid, output_dir)
