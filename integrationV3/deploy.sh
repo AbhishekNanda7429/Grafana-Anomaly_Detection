@@ -8,13 +8,13 @@ docker rm anomaly-detection-container || true
 docker rmi anomaly-detection-image || true
 
 #Remove the existing git folder
-rm -rf Grafana-Anomaly_Detection || true
+# rm -rf Grafana-Anomaly_Detection || true
 
 #clone the github repo using git clone command
-git clone https://github.com/AbhishekNanda7429/Grafana-Anomaly_Detection.git
+# git clone https://github.com/AbhishekNanda7429/Grafana-Anomaly_Detection.git
  
 #go into that folder
-cd .\Grafana-Anomaly_Detection\integrationV3\
+# cd .\Grafana-Anomaly_Detection\integrationV3\
 
 #Checkout to the dev branch
 # git checkout feature/dev
