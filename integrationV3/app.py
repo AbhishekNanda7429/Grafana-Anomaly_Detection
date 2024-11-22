@@ -5,13 +5,14 @@ from fastapi import FastAPI, HTTPException,Form
 from pydantic import BaseModel
 import pandas as pd
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List
 from GrafanaDataFetcher.requestcall import PrometheusDashboardClient
 from GrafanaDataFetcher.grafana_data_fetcher import GrafanaDataFetcher
 from anomaly_detection import AnomalyDetectionModel
 from prediction_service import PredictionService
 from GrafanaDataFetcher.grafana_data_processor import GrafanaDataProcessor
+from apscheduler.schedulers.background import BackgroundScheduler
 # Initialize FastAPI app
 app = FastAPI()
 
@@ -137,18 +138,39 @@ async def full_pipeline(request: FetchDashboardDataRequest):
 #     except Exception as e:
 #         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
-@app.post("/predict_cron/")
-async def predict_corn():
+# Function to process prediction with dynamic timeframe
+def predict_cron_job():
     base_url = "https://op.cloudbuilders.io"
     username = 'admin'
     password = 'Imfine123$'
     dashboard_uid = "opentelemetry-apm"
     output_dir = "grafana-anomaly/data"
-    timeframe = ['2024-11-14 10:00:00', '2024-11-21 00:00:00']
+
+    # Calculate dynamic timeframe: last 15 minutes
+    end_time = datetime.utcnow()
+    start_time = end_time - timedelta(minutes=15)
+    timeframe = [start_time.strftime('%Y-%m-%d %H:%M:%S'), end_time.strftime('%Y-%m-%d %H:%M:%S')]
 
     # Instantiate and run the processor
     processor = GrafanaDataProcessor(base_url, username, password, dashboard_uid, output_dir)
-    processor.run(timeframe)
-    return {"status": "success", "message": "Prediction completed successfully."}
-    
-    
+    try:
+        processor.run(timeframe)
+        print(f"Prediction completed successfully for timeframe {timeframe}")
+    except Exception as e:
+        print(f"Prediction failed: {str(e)}")
+
+# Initialize APScheduler
+scheduler = BackgroundScheduler()
+scheduler.add_job(predict_cron_job, "interval", minutes=15)
+scheduler.start()
+
+# Endpoint to trigger the cron job manually (optional)
+@app.post("/predict_cron/")
+async def predict_cron():
+    predict_cron_job()
+    return {"status": "success", "message": "Prediction triggered manually."}
+
+# Ensure the scheduler shuts down properly on app termination
+@app.on_event("shutdown")
+def shutdown_event():
+    scheduler.shutdown()

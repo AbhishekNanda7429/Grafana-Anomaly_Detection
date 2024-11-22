@@ -49,3 +49,4 @@ scikit-learn==1.0.2
 uvicorn[standard]
 boto3
 python-dotenv
+apscheduler
