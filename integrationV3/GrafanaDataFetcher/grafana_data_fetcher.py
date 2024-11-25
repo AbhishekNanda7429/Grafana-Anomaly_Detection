@@ -10,13 +10,14 @@ from GrafanaDataFetcher.Nan_value_treatment import DataCleaner
 
 
 class GrafanaDataFetcher:
-    def __init__(self, url, username, password, service_name, http_routes, data_source):
+    def __init__(self, url, username, password, service_name, http_routes, data_source,MIN_INTERVAL_MS=60000):
         self.url = url
         self.auth = HTTPBasicAuth(username, password)
         self.headers = {'Content-Type': 'application/json'}
         self.service_name = service_name
         self.http_routes = http_routes
         self.data_source = data_source
+        self.MIN_INTERVAL_MS = MIN_INTERVAL_MS
 
     @staticmethod
     def convert_to_timestamp(date_str):
@@ -90,7 +91,7 @@ class GrafanaDataFetcher:
 
     def build_query_body(self, timeframe):
         """Construct the query body for the Grafana API request."""
-        from_timestamp, to_timestamp, interval_ms, max_data_points = self.calculate_dynamic_values(timeframe)
+        from_timestamp, to_timestamp, interval_ms, max_data_points = self.calculate_dynamic_values(timeframe,MIN_INTERVAL_MS=self.MIN_INTERVAL_MS)
         expr = self.build_query_expression()
 
         return {

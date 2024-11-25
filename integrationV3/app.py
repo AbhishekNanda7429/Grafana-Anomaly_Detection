@@ -1,12 +1,12 @@
 # app.py
 
 import os
-from fastapi import FastAPI, HTTPException,Form
+from fastapi import FastAPI, HTTPException,Form,Query
 from pydantic import BaseModel
 import pandas as pd
 from pathlib import Path
 from datetime import datetime, timedelta
-from typing import List
+from typing import List, Optional
 from GrafanaDataFetcher.requestcall import PrometheusDashboardClient
 from GrafanaDataFetcher.grafana_data_fetcher import GrafanaDataFetcher
 from anomaly_detection import AnomalyDetectionModel
@@ -133,8 +133,10 @@ def predict_cron_job():
     # Calculate dynamic timeframe: last 15 minutes
     # Adjust current UTC time by the offset
     end_time = datetime.utcnow() 
+    # end_time_str = "2024-11-24 06:24:44"#['2024-11-25 04:44:44', '2024-11-25 06:24:44']
+    # end_time = datetime.strptime(end_time_str, '%Y-%m-%d %H:%M:%S')
     
-    start_time = end_time - timedelta(minutes=100)
+    start_time = end_time - timedelta(minutes=10)
     timeframe = [start_time.strftime('%Y-%m-%d %H:%M:%S'), end_time.strftime('%Y-%m-%d %H:%M:%S')]
     print(f"Adjusted Timeframe (with UTC Offset): {timeframe}")
 
@@ -148,14 +150,53 @@ def predict_cron_job():
 
 # Initialize APScheduler
 scheduler = BackgroundScheduler()
-scheduler.add_job(predict_cron_job, "interval", minutes=100)
+scheduler.add_job(predict_cron_job, "interval", minutes=10)
 scheduler.start()
 
-# Endpoint to trigger the cron job manually (optional)
+# Endpoint to trigger the cron job manually (optional)# Update the endpoint to accept query parameters@app.post("/predict_cron/")
+# Update the endpoint to accept individual query parameters for start_time and end_time
 @app.post("/predict_cron/")
-async def predict_cron():
-    predict_cron_job()
-    return {"status": "success", "message": "Prediction triggered manually."}
+async def predict_cron(
+    start_time: Optional[str] = Query(
+        None, description="Start time in format 'YYYY-MM-DD HH:MM:SS'"
+    ),
+    end_time: Optional[str] = Query(
+        None, description="End time in format 'YYYY-MM-DD HH:MM:SS'"
+    )
+):
+    """
+    Run the prediction pipeline manually with a custom timeframe or return an error if parameters are missing.
+    """
+    base_url = "https://op.cloudbuilders.io"
+    username = 'admin'
+    password = 'Imfine123$'
+    dashboard_uid = "opentelemetry-apm"
+    output_dir = "grafana-anomaly/data"
+
+    # Validate the input parameters
+    if start_time and end_time:
+        try:
+            start_time_dt = datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')
+            end_time_dt = datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid datetime format. Use 'YYYY-MM-DD HH:MM:SS'.")
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail="Both start_time and end_time query parameters are required."
+        )
+
+    timeframe = [start_time_dt.strftime('%Y-%m-%d %H:%M:%S'), end_time_dt.strftime('%Y-%m-%d %H:%M:%S')]
+    print(f"Timeframe for Manual Trigger: {timeframe}")
+
+    # Instantiate and run the processor
+    processor = GrafanaDataProcessor(base_url, username, password, dashboard_uid, output_dir)
+    try:
+        processor.run(timeframe)
+        return {"status": "success", "message": f"Prediction completed successfully for timeframe {timeframe}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+
 
 # Ensure the scheduler shuts down properly on app termination
 @app.on_event("shutdown")
