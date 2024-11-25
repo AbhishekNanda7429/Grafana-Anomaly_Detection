@@ -136,7 +136,7 @@ def predict_cron_job():
     # end_time_str = "2024-11-24 06:24:44"#['2024-11-25 04:44:44', '2024-11-25 06:24:44']
     # end_time = datetime.strptime(end_time_str, '%Y-%m-%d %H:%M:%S')
     
-    start_time = end_time - timedelta(minutes=15)
+    start_time = end_time - timedelta(minutes=10)
     timeframe = [start_time.strftime('%Y-%m-%d %H:%M:%S'), end_time.strftime('%Y-%m-%d %H:%M:%S')]
     print(f"Adjusted Timeframe (with UTC Offset): {timeframe}")
 
@@ -150,7 +150,7 @@ def predict_cron_job():
 
 # Initialize APScheduler
 scheduler = BackgroundScheduler()
-scheduler.add_job(predict_cron_job, "interval", minutes=15)
+scheduler.add_job(predict_cron_job, "interval", minutes=10)
 scheduler.start()
 
 # Endpoint to trigger the cron job manually (optional)# Update the endpoint to accept query parameters@app.post("/predict_cron/")
