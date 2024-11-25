@@ -60,7 +60,7 @@ class GrafanaDataProcessor:
         """
         try:
             data_source = {"type": "prometheus", "uid": self.prometheus_datasource_uid}
-            data_fetcher = GrafanaDataFetcher(self.base_url, self.username, self.password, service_name, self.http_routes, data_source)
+            data_fetcher = GrafanaDataFetcher(self.base_url, self.username, self.password, service_name, self.http_routes, data_source,MIN_INTERVAL_MS=15000)
             
             # Fetch and process data
             data = data_fetcher.fetch_data(self.timeframe)
