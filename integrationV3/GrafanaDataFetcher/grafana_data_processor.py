@@ -51,6 +51,7 @@ class GrafanaDataProcessor:
         dashboard_data = client.get_queries_and_service_data(self.dashboard_uid, timeframe)
         self.service_names = dashboard_data.get("service_names", [])
         self.http_routes = dashboard_data.get("http_routes", [])
+        print(f"Service Names: {self.service_names}", f"HTTP Routes: {self.http_routes}")
         self.prometheus_datasource_uid = dashboard_data.get("prometheus_datasource_uid")
 
     def process_service_data(self, service_name):
@@ -84,30 +85,25 @@ class GrafanaDataProcessor:
                     # data_fetcher.save_dataframe(df, output_file)
                     ##############anomaly detection code here
                     print(f"there is the model filename:", model_filename)
-                    anomaly_df = self.prediction_service.run_prediction_pipeline(df,model_filename)
+                    try:
+                        anomaly_df = self.prediction_service.run_prediction_pipeline(df, model_filename)
 
-                    #########
-                    #####################
-                    
-                    print("anomaly data: \n ",anomaly_df)
-                    s3_bucket_name = "anomaly-detection-bucket-cloudbuilders"#env
-                    athena_database = "athena_database"#env
-                    # table_name = "express_GET__slash_io_task_prediction"
-                    table_name = f"{service_name.replace('-', '')}_{col.replace(' ', '_').replace('/', '_slash_').replace('*', '_star_')}"
+                        print("anomaly data: \n", anomaly_df)
+                        s3_bucket_name = "anomaly-detection-bucket-cloudbuilders"  # env
+                        athena_database = "athena_database"  # env
+                        table_name = f"{service_name.replace('-', '')}_{col.replace(' ', '_').replace('/', '_slash_').replace('*', '_star_')}"
 
-                    
-                    aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID_ATHENA")
-                    aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY_ATHENA")
-                    
-                    
+                        aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID_ATHENA")
+                        aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY_ATHENA")
 
-                    injector = S3DataInjector(
-                        s3_bucket_name, athena_database, aws_access_key_id, aws_secret_access_key, partition_granularity="minute"
-                    )
-                    result_df = injector.inject_data(anomaly_df, table_name)
-                    print(result_df)
-                    print("Data injection complete.")
-                    # print(f"Saving data to {output_file} for service_name {service_name}")
+                        injector = S3DataInjector(
+                            s3_bucket_name, athena_database, aws_access_key_id, aws_secret_access_key, partition_granularity="minute"
+                        )
+                        result_df = injector.inject_data(anomaly_df, table_name)
+                        print(result_df)
+                        print("Data injection complete.")
+                    except Exception as e:
+                        print(f"Error during anomaly detection and data injection for {service_name}: {e}")
                    
 
         except Exception as e:

@@ -90,7 +90,7 @@ class GrafanaDataFetcher:
 
     def build_query_body(self, timeframe):
         """Construct the query body for the Grafana API request."""
-        from_timestamp, to_timestamp, interval_ms, max_data_points = self.calculate_dynamic_values(timeframe)
+        from_timestamp, to_timestamp, interval_ms, max_data_points = self.calculate_dynamic_values(timeframe,MIN_INTERVAL_MS=15000)
         expr = self.build_query_expression()
 
         return {
