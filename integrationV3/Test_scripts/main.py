@@ -1,4 +1,4 @@
-from anomaly_detection import AnomalyDetectionModel
+from ML_model.anomaly_detection import AnomalyDetectionModel
 
 
 filepath1= 'C:\\Users\\abhis\\Desktop\\CloudBuilders\\Grafana-Anomaly\\Grafana-Anomaly_Detection\\newData\\GET error_test3.csv'

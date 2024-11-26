@@ -9,8 +9,8 @@ from datetime import datetime, timedelta
 from typing import List, Optional
 from GrafanaDataFetcher.requestcall import PrometheusDashboardClient
 from GrafanaDataFetcher.grafana_data_fetcher import GrafanaDataFetcher
-from anomaly_detection import AnomalyDetectionModel
-from prediction_service import PredictionService
+from ML_model.anomaly_detection import AnomalyDetectionModel
+from ML_model.prediction_service import PredictionService
 from GrafanaDataFetcher.grafana_data_processor import GrafanaDataProcessor
 from apscheduler.schedulers.background import BackgroundScheduler
 # Initialize FastAPI app
