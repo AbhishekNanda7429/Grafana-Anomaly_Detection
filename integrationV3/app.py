@@ -126,6 +126,8 @@ def predict_cron_job():
     password = 'Imfine123$'
     dashboard_uid = "opentelemetry-apm"
     output_dir = "grafana-anomaly/data"
+    s3_bucket_name = "anomaly-detection-bucket-cloudbuilders"  # env
+    athena_database = "athena_database"  # env
 
     # UTC offset in seconds
     utc_offset_seconds = 19800  # 5 hours 30 minutes
@@ -141,7 +143,7 @@ def predict_cron_job():
     print(f"Adjusted Timeframe (with UTC Offset): {timeframe}")
 
     # Instantiate and run the processor
-    processor = GrafanaDataProcessor(base_url, username, password, dashboard_uid, output_dir)
+    processor = GrafanaDataProcessor(base_url, username, password, dashboard_uid, output_dir,athena_database,s3_bucket_name)
     try:
         processor.run(timeframe)
         print(f"Prediction completed successfully for timeframe {timeframe}")
@@ -172,6 +174,8 @@ async def predict_cron(
     password = 'Imfine123$'
     dashboard_uid = "opentelemetry-apm"
     output_dir = "grafana-anomaly/data"
+    s3_bucket_name = "anomaly-detection-bucket-cloudbuilders"  # env
+    athena_database = "athena_database"  # env
 
     # Validate the input parameters
     if start_time and end_time:
@@ -190,7 +194,7 @@ async def predict_cron(
     print(f"Timeframe for Manual Trigger: {timeframe}")
 
     # Instantiate and run the processor
-    processor = GrafanaDataProcessor(base_url, username, password, dashboard_uid, output_dir)
+    processor = GrafanaDataProcessor(base_url, username, password, dashboard_uid, output_dir,athena_database,s3_bucket_name)
     try:
         processor.run(timeframe)
         return {"status": "success", "message": f"Prediction completed successfully for timeframe {timeframe}"}

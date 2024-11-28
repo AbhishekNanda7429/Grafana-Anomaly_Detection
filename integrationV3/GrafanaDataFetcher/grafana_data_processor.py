@@ -7,7 +7,7 @@ from GrafanaDataFetcher.grafana_data_fetcher import GrafanaDataFetcher
 from pathlib import Path
 import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from prediction_service import PredictionService
+from ML_model.prediction_service import PredictionService
 import os 
 from DataInjection.data_injection import S3DataInjector
 
@@ -15,7 +15,7 @@ from DataInjection.data_injection import S3DataInjector
 
 
 class GrafanaDataProcessor:
-    def __init__(self, base_url, username, password, dashboard_uid, output_dir):
+    def __init__(self, base_url, username, password, dashboard_uid, output_dir,athena_database,s3_bucket_name):
         """
         Initialize the GrafanaDataProcessor with credentials and configuration.
         """
@@ -31,6 +31,8 @@ class GrafanaDataProcessor:
         self.timeframe = []
         S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
         S3_MODEL_PREFIX = os.getenv("S3_MODEL_PREFIX")
+        self.athena_database= athena_database
+        self.s3_bucket_name=s3_bucket_name
         # S3_OUTPUT_PREFIX = os.getenv("S3_OUTPUT_PREFIX")
 
         # Initialize PredictionService with S3 parameters
@@ -89,8 +91,10 @@ class GrafanaDataProcessor:
                         anomaly_df = self.prediction_service.run_prediction_pipeline(df, model_filename)
 
                         print("anomaly data: \n", anomaly_df)
-                        s3_bucket_name = "anomaly-detection-bucket-cloudbuilders"  # env
-                        athena_database = "athena_database"  # env
+                        # s3_bucket_name = "anomaly-detection-bucket-cloudbuilders"  # env
+                        # athena_database = "athena_database"  # env
+                        athena_database=self.athena_database
+                        s3_bucket_name=self.s3_bucket_name
                         table_name = f"{service_name.replace('-', '')}_{col.replace(' ', '_').replace('/', '_slash_').replace('*', '_star_')}"
 
                         aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID_ATHENA")
